@@ -1,4 +1,7 @@
 using BuberBreakfas.Models;
+using BuberBreakfast.ServiceErrors;
+using ErrorOr;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BuberBreakfas.Services.Breakfasts;
 
@@ -6,13 +9,36 @@ public class BreakfastService : IBreakfastService
 {
     private static readonly Dictionary<Guid, Breakfast> _breakfasts = new();
 
-    public void CreateBreakfast(Breakfast breakfast)
+    public ErrorOr<Created> CreateBreakfast(Breakfast breakfast)
     {
         _breakfasts.Add(breakfast.Id, breakfast);
+        return Result.Created;
     }
 
-    public Breakfast GetBreakfast(Guid id)
+    public ErrorOr<Deleted> DeleteBreakfast(Guid id)
     {
-        return _breakfasts[id]; // 通过key，拿到value
+        _breakfasts.Remove(id);
+        return Result.Deleted;
+    }
+
+    public ErrorOr<Breakfast> GetBreakfast(Guid id)
+    {
+        if (_breakfasts.TryGetValue(id, out var breakfast))
+        {
+            return breakfast;
+        }
+        // return _breakfasts[id]; // 通过key，拿到value
+        return Errors.Breakfast.NotFound;
+    }
+
+    public ErrorOr<UpsertedBreakfastResult> UpsertBreakfast(Breakfast breakfast)
+    {
+        // _breakfasts[breakfast.Id] = breakfast;
+        // return Result.Updated;
+
+        var IsNewlyCreated = !_breakfasts.ContainsKey(breakfast.Id);
+        _breakfasts[breakfast.Id] = breakfast;
+
+        return new UpsertedBreakfastResult(IsNewlyCreated);
     }
 }
