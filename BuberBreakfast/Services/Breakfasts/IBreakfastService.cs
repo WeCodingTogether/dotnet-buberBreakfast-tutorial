@@ -1,4 +1,4 @@
-using BuberBreakfas.Models;
+using BuberBreakfast.Models;
 using ErrorOr;
 
 namespace BuberBreakfas.Services.Breakfasts;

@@ -1,4 +1,4 @@
-using BuberBreakfas.Models;
+using BuberBreakfast.Models;
 using BuberBreakfast.ServiceErrors;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
@@ -17,8 +17,13 @@ public class BreakfastService : IBreakfastService
 
     public ErrorOr<Deleted> DeleteBreakfast(Guid id)
     {
-        _breakfasts.Remove(id);
-        return Result.Deleted;
+        if (_breakfasts.ContainsKey(id))
+        {
+            _breakfasts.Remove(id);
+            return Result.Deleted;
+        }
+
+        return Errors.Breakfast.NotFound;
     }
 
     public ErrorOr<Breakfast> GetBreakfast(Guid id)

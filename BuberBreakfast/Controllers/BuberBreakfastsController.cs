@@ -1,5 +1,5 @@
 using BuberBreakfas.Controllers;
-using BuberBreakfas.Models;
+using BuberBreakfast.Models;
 using BuberBreakfas.Services.Breakfasts;
 using BuberBreakfast.Contracts.Breakfast;
 using BuberBreakfast.ServiceErrors;
@@ -23,38 +23,17 @@ public class BreakfastsController : ApiController
     [HttpPost]
     public IActionResult CreateBreakfast(CreateBreakfastRequest request)
     {
-        // 接收post的request对象，转为breakfast对象
-        var breakfast = new Breakfast(
-            Guid.NewGuid(),
-            request.Name,
-            request.Description,
-            request.StartDateTime,
-            request.EndDateTime,
-            DateTime.UtcNow,
-            request.Savory,
-            request.Sweet
-        );
 
+        // 接收post的request对象，转为breakfast对象
+        ErrorOr<Breakfast> requestToBreakfastResult = Breakfast.From(request);
+
+        if (requestToBreakfastResult.IsError)
+        {
+            return Problem(requestToBreakfastResult.Errors);
+        }
+        var breakfast = requestToBreakfastResult.Value;
         // TODO: sabe breakfast to database
         ErrorOr<Created> createBreakfastresult = _breakfastService.CreateBreakfast(breakfast);
-
-        // 返回breakfastResponse对象
-        // var response = new BreakfastReponse(
-        //     breakfast.Id,
-        //     breakfast.Name,
-        //     breakfast.Description,
-        //     breakfast.StartDateTime,
-        //     breakfast.EndDateTime,
-        //     breakfast.LastModifiedDateTime,
-        //     breakfast.Savory,
-        //     breakfast.Sweet
-        // );
-
-        if (createBreakfastresult.IsError)
-        {
-            return Problem(createBreakfastresult.Errors);
-        }
-
         // return Ok(response);
         // return CreatedAtAction(
         //     actionName: nameof(GetBreakfast),
@@ -94,16 +73,13 @@ public class BreakfastsController : ApiController
     [HttpPut("{id:guid}")]
     public IActionResult UpsertBreakfast(Guid id, UpsertBreakfastRequest request)
     {
-        Breakfast breakfast = new Breakfast(
-            id,
-            request.Name,
-            request.Description,
-            request.StartDateTime,
-            request.EndDateTime,
-            DateTime.UtcNow,
-            request.Savory,
-            request.Sweet
-        );
+        ErrorOr<Breakfast> requestToBreakfastResult = Breakfast.From(id, request);
+
+        if (requestToBreakfastResult.IsError)
+        {
+            return Problem(requestToBreakfastResult.Errors);
+        }
+        Breakfast breakfast = requestToBreakfastResult.Value;
         ErrorOr<UpsertedBreakfastResult> upsertBreakfastResult = _breakfastService.UpsertBreakfast(breakfast);
 
         // TODO: return 201 if a new breakfast was created
